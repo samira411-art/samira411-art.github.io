@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Samira Jama Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;800;900&family=Caveat:wght@500;600&family=Cormorant+Garamond:ital,wght@1,500;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: en digital planner som en skrivbordsbild. Brunt omslag med gummiband och klistermärken, sedan en ringpärm
+     med fickor och ifyllda rader, lösa pappersark, post-it-lappar och projektkort. Samma färger som tidigare, ett fast uttryck. */
+  :root {
+    --hero: #f3bfc8;
+    --ink: #3f1618;
+    --wine: #55142a;
+    --paper: #f5ece8;
+    --pink: #f5d7db;
+    --cream: #e9e0cc;
+    --ink-soft: #6d4448;
+    --line: #cdb3b3;
+    --sheet: #fffaf6;
+    --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    --font-script: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+    --font-hand: "Caveat", "Segoe Script", cursive;
+    --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    --shadow: 0 18px 30px -14px rgba(63, 22, 24, 0.45);
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--paper); }
+  body { margin: 0; color: var(--ink); font-family: var(--font-body); font-size: 1rem; line-height: 1.6; background: linear-gradient(180deg, var(--hero) 0, var(--pink) 28rem, var(--paper) 60rem); background-color: var(--paper); overflow-x: clip; }
+  a { color: inherit; text-underline-offset: 3px; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--wine); outline-offset: 3px; }
+  h1, h2, h3, p { margin: 0; }
+  .wrap { max-width: 64rem; margin-inline: auto; padding-inline: 1rem; display: flex; flex-direction: column; gap: 4.5rem; padding-block: 2rem 4rem; }
+  .mono { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.14em; text-transform: uppercase; }
+  .tape { position: absolute; width: 5.5rem; height: 1.5rem; background: rgba(243, 191, 200, 0.78); border-left: 2px dotted rgba(63, 22, 24, 0.18); border-right: 2px dotted rgba(63, 22, 24, 0.18); }
+
+  /* ---------- Omslag ---------- */
+  .cover { position: relative; background: var(--ink); border-radius: 1.25rem; box-shadow: var(--shadow); padding: 2rem 1.25rem 2rem; display: flex; flex-direction: column; gap: 1.5rem;
+    background-image: linear-gradient(90deg, transparent calc(72% - 1px), rgba(0,0,0,.4) calc(72% - 1px), rgba(0,0,0,.4) 72%, rgba(255,255,255,.06) 72%, rgba(255,255,255,.04) 100%); }
+  .clip { position: absolute; top: 1.25rem; right: 12%; width: 4.5rem; height: 2.4rem; transform: rotate(-12deg); }
+  .cover-top { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2rem; align-items: center; justify-items: center; padding-top: 1rem; }
+  @media (min-width: 44rem) { .cover { padding: 3rem 3rem 2.5rem; } .cover-top { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); } }
+  .deck { position: relative; display: flex; align-items: flex-start; gap: 0; width: min(100%, 25rem); }
+  .card { position: relative; flex: 1 1 auto; min-width: 0; aspect-ratio: 3 / 4; background-color: var(--hero);
+    background-image: repeating-linear-gradient(0deg, rgba(85,20,42,.16) 0 .9rem, transparent .9rem 1.8rem), repeating-linear-gradient(90deg, rgba(85,20,42,.16) 0 .9rem, transparent .9rem 1.8rem);
+    transform: rotate(-3deg); padding: 3rem 1.25rem 3rem; display: flex; flex-direction: column; justify-content: center; gap: 0.5rem; box-shadow: 0 10px 20px -10px rgba(0,0,0,.6); }
+  .card::before, .card::after { content: ""; position: absolute; left: 0; right: 0; height: 1.6rem; background: radial-gradient(circle at 0.9rem 1.7rem, var(--paper) 0.7rem, transparent 0.75rem) 0 0 / 1.8rem 1.6rem repeat-x; }
+  .card::before { top: -0.1rem; }
+  .card::after { bottom: -0.1rem; transform: scaleY(-1); }
+  .card .script { font-family: var(--font-script); font-style: italic; font-weight: 600; color: var(--wine); line-height: 0.9; }
+  .card .big { font-size: clamp(3rem, 15vw, 4.75rem); letter-spacing: -0.02em; }
+  .card .yr { font-size: 1.5rem; letter-spacing: 0.3em; margin-top: 1.25rem; }
+  .card .tape { top: -0.4rem; left: 50%; transform: translateX(-30%) rotate(8deg); }
+  .strip { position: relative; flex: none; width: 28%; margin-left: -0.5rem; margin-top: 1rem; transform: rotate(3deg); background: var(--sheet); padding: 0.4rem; display: flex; flex-direction: column; gap: 0.4rem; box-shadow: 0 10px 20px -10px rgba(0,0,0,.6); }
+  .strip svg { display: block; width: 100%; height: auto; }
+  .tags { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; }
+  .tags h1 { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; }
+  .tag { display: inline-block; background: var(--pink); color: var(--ink); font-family: var(--font-display); font-weight: 800; letter-spacing: -0.045em; line-height: 1; font-size: clamp(2.6rem, 11vw, 4.25rem); padding: 0.35rem 0.9rem 0.45rem; }
+  .tag.a { transform: rotate(-3deg); }
+  .tag.b { transform: rotate(2deg) translateX(1.25rem); }
+  .links { display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: center; }
+  .label { display: inline-flex; gap: 0.4rem; align-items: center; background: var(--cream); color: var(--ink); text-decoration: none; font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.45rem 0.9rem; border-radius: 0.2rem; transition: background 0.15s ease; }
+  .label:nth-child(odd) { transform: rotate(-1.5deg); }
+  .label:nth-child(even) { transform: rotate(1.5deg); }
+  .label:hover { background: var(--hero); }
+  .band { position: relative; height: 2.25rem; margin-inline: -1.25rem; display: flex; align-items: center; justify-content: flex-end; gap: 0.6rem; padding-right: 15%; }
+  @media (min-width: 44rem) { .band { margin-inline: -3rem; } }
+  .band::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 9px; transform: translateY(-50%); background: linear-gradient(180deg, transparent 0 1px, #9b8a82 1px 3px, transparent 3px 6px, #9b8a82 6px 8px, transparent 8px); }
+  .charm { position: relative; width: 2.1rem; height: 2.1rem; border-radius: 50%; background: var(--cream); color: var(--wine); display: grid; place-items: center; font-family: var(--font-script); font-style: italic; font-weight: 600; font-size: 1.4rem; line-height: 1; box-shadow: 0 4px 8px -3px rgba(0,0,0,.6); }
+  .charm.pill { width: 3.2rem; border-radius: 999px; height: 1.3rem; background: var(--pink); }
+  .charm svg { width: 1.2rem; height: 1.2rem; }
+  .sticker-star { position: absolute; right: 1.5rem; bottom: 1rem; width: 3rem; height: 3rem; color: var(--cream); transform: rotate(14deg); }
+  .cover-foot { display: flex; justify-content: space-between; gap: 1rem; color: var(--cream); flex-wrap: wrap; }
+
+  /* ---------- Ringpärm ---------- */
+  .binder { position: relative; background: var(--ink); border-radius: 1.25rem; padding: 0.75rem; box-shadow: var(--shadow); display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.75rem; }
+  @media (min-width: 52rem) { .binder { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0; padding: 1rem 1rem 1rem 1rem; } }
+  .pg { position: relative; min-width: 0; }
+  .pg-l { background: var(--cream); border-radius: 0.6rem; padding: 1.5rem 1.25rem 3rem; display: flex; flex-direction: column; gap: 1.25rem; overflow: hidden; }
+  @media (min-width: 52rem) { .pg-l { border-radius: 0.6rem 0 0 0.6rem; padding: 2rem 2.25rem 2rem 1.75rem; } }
+  .pocket { position: relative; flex-direction: column; align-items: flex-start; background: rgba(255, 255, 255, 0.38); border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 0.3rem; padding: 1.1rem 0.9rem; display: flex; gap: 0.9rem; box-shadow: inset 0 0 0 3px rgba(255,255,255,.18); }
+  .pocket .strip svg { width: 33.3%; }
+  .pocket .strip { transform: rotate(-2deg); margin: 0; width: 100%; max-width: 6rem; flex-direction: row; }
+  .post { position: relative; align-self: stretch; flex: 1 1 auto; min-width: 0; background: var(--sheet); padding: 0.9rem 1rem; transform: rotate(1.5deg); box-shadow: 0 6px 12px -6px rgba(63,22,24,.5); display: flex; flex-direction: column; gap: 0.5rem; }
+  .post .stamp { position: absolute; top: 0.5rem; right: 0.5rem; width: 2.4rem; height: 2.8rem; background: var(--hero); border: 3px double var(--wine); display: grid; place-items: center; color: var(--wine); }
+  .post .stamp svg { width: 1.3rem; height: 1.3rem; }
+  .post .lbl { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }
+  .post .hand { padding-right: 3rem; font-family: var(--font-hand); font-weight: 600; font-size: 1.5rem; line-height: 1.1; color: var(--wine); }
+  .contact { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+  .contact li { border-bottom: 1px solid var(--line); padding-bottom: 0.3rem; display: flex; flex-direction: column; min-width: 0; font-size: 0.9375rem; }
+  .contact .k { font-family: var(--font-mono); font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); }
+  .contact .v { overflow-wrap: anywhere; }
+  .copy { font: inherit; font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.06em; background: transparent; color: var(--ink); border: 1px solid var(--ink); border-radius: 999px; padding: 0.05rem 0.65rem; margin-left: 0.5rem; cursor: pointer; }
+  .copy:hover { background: var(--ink); color: var(--paper); }
+  .pg-r { background: var(--sheet); border-radius: 0.6rem; padding: 2.75rem 1.25rem 2.25rem; display: flex; flex-direction: column; gap: 1.5rem; }
+  @media (min-width: 52rem) { .pg-r { border-radius: 0 0.6rem 0.6rem 0; padding: 3rem 2.5rem 2.5rem 3rem; } .pg-r::before { content: ""; position: absolute; left: -0.75rem; top: 1rem; bottom: 1rem; width: 1.5rem; background: radial-gradient(circle at 50% 50%, #e4dcd6 0 0.3rem, #8f8884 0.34rem 0.46rem, transparent 0.5rem) 0 0 / 1.5rem 4rem repeat-y; } }
+  .bclip { position: absolute; top: -0.9rem; left: 50%; width: 5rem; height: 2.4rem; transform: translateX(-50%); }
+  .pg-r h2 { font-family: var(--font-display); font-weight: 900; font-size: clamp(2.5rem, 9vw, 4rem); line-height: 0.88; letter-spacing: -0.04em; text-transform: uppercase; }
+  .head { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; }
+  .photo { flex: none; width: 5.5rem; background: #fff; padding: 0.3rem 0.3rem 0.6rem; border: 1px solid var(--line); box-shadow: 0 6px 12px -8px rgba(63,22,24,.6); }
+  .photo svg { display: block; width: 100%; height: auto; }
+  .fields { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.55rem; }
+  .field { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.75rem; border-bottom: 1px dotted var(--ink-soft); padding-bottom: 0.2rem; }
+  .field .lbl { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.08em; color: var(--ink-soft); }
+  .field .hand { font-family: var(--font-hand); font-weight: 600; font-size: 1.5rem; line-height: 1.1; color: var(--wine); }
+  .bio { background: repeating-linear-gradient(180deg, transparent 0 1.75rem, var(--line) 1.75rem calc(1.75rem + 1px)); display: flex; flex-direction: column; gap: 1.75rem; }
+  .bio p { line-height: 1.75rem; max-width: 36rem; text-wrap: pretty; }
+
+  /* ---------- Lösa ark ---------- */
+  .sheets { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; padding-top: 0.75rem; }
+  @media (min-width: 46rem) { .sheets { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; } }
+  .sheet { position: relative; background: var(--sheet); padding: 2rem 1.4rem 1.75rem; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 1rem; min-width: 0;
+    background-image: repeating-linear-gradient(180deg, transparent 0 1.74rem, rgba(205,179,179,.55) 1.74rem calc(1.74rem + 1px)); background-position: 0 3.3rem; }
+  .sheet:nth-child(1) { transform: rotate(-1.2deg); }
+  .sheet:nth-child(2) { transform: rotate(0.8deg); }
+  .sheet:nth-child(3) { transform: rotate(-0.6deg); }
+  @media (max-width: 45.99rem) { .sheet { transform: none !important; } }
+  .sheet .tape { top: -0.7rem; left: 50%; transform: translateX(-50%) rotate(-3deg); }
+  .tab { align-self: flex-start; background: var(--hero); font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; padding: 0.2rem 0.8rem; border-radius: 0.2rem; font-weight: 500; }
+  .item { display: flex; flex-direction: column; gap: 0.05rem; font-size: 0.9375rem; line-height: 1.74rem; }
+  .item b { font-weight: 600; line-height: 1.3; }
+  .item .m { color: var(--ink-soft); line-height: 1.3; }
+  .item .d { font-family: var(--font-hand); font-weight: 600; font-size: 1.2rem; color: var(--wine); line-height: 1.3; }
+  .sub { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); line-height: 1.74rem; }
+  .levels { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; font-size: 0.9375rem; }
+  .levels li { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; line-height: 1.74rem; }
+  .dots { display: flex; gap: 0.3rem; flex: none; }
+  .dots i { display: block; width: 0.7rem; height: 0.7rem; border-radius: 50%; border: 1.5px solid var(--ink); background: var(--ink); }
+
+  /* ---------- Lappar och projekt ---------- */
+  .sec-h { font-family: var(--font-display); font-weight: 900; font-size: clamp(2.25rem, 8vw, 4.5rem); line-height: 0.9; letter-spacing: -0.04em; text-transform: uppercase; margin-bottom: 1.75rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .sec-h small { font-family: var(--font-hand); font-weight: 600; font-size: 1.6rem; letter-spacing: 0; text-transform: none; color: var(--wine); transform: rotate(-4deg); }
+  .notes { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+  @media (min-width: 46rem) { .notes { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; } }
+  .note { position: relative; padding: 2rem 1.4rem 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; box-shadow: var(--shadow); min-height: 11rem; }
+  .note:nth-child(1) { background: var(--hero); transform: rotate(-2deg); }
+  .note:nth-child(2) { background: var(--cream); transform: rotate(1.5deg); }
+  .note:nth-child(3) { background: var(--pink); transform: rotate(-1deg); }
+  @media (max-width: 45.99rem) { .note { transform: none !important; min-height: 0; } }
+  .note .tape { top: -0.7rem; left: 50%; transform: translateX(-50%) rotate(4deg); background: rgba(255,250,246,.7); }
+  .note b { font-family: var(--font-hand); font-weight: 600; font-size: 1.9rem; line-height: 1; color: var(--wine); }
+  .note span { text-wrap: pretty; }
+  .cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.25rem; }
+  @media (min-width: 46rem) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.75rem; } }
+  .pcard { position: relative; background: var(--wine); color: var(--pink); border-radius: 0.5rem; padding: 2.25rem 1.75rem 1.75rem; display: flex; flex-direction: column; gap: 0.9rem; min-width: 0; box-shadow: var(--shadow); }
+  .pcard:nth-child(1) { transform: rotate(-0.8deg); }
+  .pcard:nth-child(2) { transform: rotate(0.8deg); }
+  @media (max-width: 45.99rem) { .pcard { transform: none !important; } }
+  .pcard .tape { top: -0.7rem; right: 2rem; transform: rotate(5deg); }
+  .pcard .k { align-self: flex-start; background: var(--pink); color: var(--ink); font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.15rem 0.7rem; }
+  .pcard h3 { font-family: var(--font-display); font-weight: 900; font-size: clamp(1.75rem, 4vw, 2.5rem); line-height: 0.95; letter-spacing: -0.03em; text-transform: uppercase; }
+  .pcard p { text-wrap: pretty; }
+  .ptags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .ptags li { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.06em; border: 1px solid var(--pink); border-radius: 999px; padding: 0.1rem 0.7rem; }
+  .btn { display: inline-flex; gap: 0.5rem; align-items: center; padding: 0.7rem 1.3rem; border-radius: 999px; border: 2px solid var(--pink); color: var(--pink); text-decoration: none; font-weight: 600; transition: background 0.15s ease, color 0.15s ease; align-self: flex-start; margin-top: auto; }
+  .btn:hover { background: var(--pink); color: var(--wine); }
+
+  /* ---------- Avslutning ---------- */
+  .outro { background: var(--cream); border-radius: 1.25rem; padding: 3rem 1.5rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2rem; box-shadow: var(--shadow); }
+  .s-big { width: min(50vw, 11rem); height: auto; display: block; color: #2f4fd0; }
+  .outro-text { font-family: var(--font-display); font-weight: 900; font-size: clamp(2.25rem, 8vw, 5rem); line-height: 0.9; letter-spacing: -0.035em; text-transform: uppercase; text-align: right; }
+  .outro-text span { display: block; font-family: var(--font-mono); font-weight: 500; font-size: 0.75rem; letter-spacing: 0.14em; line-height: 1.5; margin-top: 1rem; color: var(--ink-soft); }
+  .foot { background: var(--ink); color: var(--pink); padding: 3rem 1rem; }
+  .foot-in { max-width: 64rem; margin-inline: auto; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 2rem; }
+  .foot h2 { font-family: var(--font-display); font-weight: 900; font-size: clamp(2.5rem, 9vw, 5rem); line-height: 0.9; letter-spacing: -0.03em; margin-bottom: 1.25rem; text-transform: uppercase; }
+  .foot nav { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+  .foot .btn { margin-top: 0; }
+  .foot small { display: block; width: 100%; font-family: var(--font-mono); font-size: 0.75rem; color: var(--cream); }
+  .foot .mark { width: 4.5rem; height: 6.2rem; color: var(--pink); }
+  .foot a:focus-visible, .foot button:focus-visible { outline-color: var(--cream); }
+  @media (prefers-reduced-motion: reduce) { .btn, .label { transition: none; } }
+</style>
+</head>
+<body>
+
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="star" viewBox="0 0 200 200">
+    <path d="M100 15 L116 78 L170 52 L135 100 L190 118 L128 128 L140 185 L100 140 L55 188 L72 125 L12 108 L68 92 L40 40 L88 72 Z" stroke="currentColor" stroke-width="10" stroke-linejoin="round" fill="currentColor"/>
+  </symbol>
+  <symbol id="s-mark" viewBox="0 0 220 300">
+    <g transform="translate(10,10)">
+      <path d="M148 62 C132 28 62 24 56 76 C50 124 150 142 146 198 C142 252 70 256 46 214" fill="none" stroke="currentColor" stroke-width="46" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="148" cy="62" r="31" fill="currentColor"/>
+      <circle cx="46" cy="214" r="32" fill="currentColor"/>
+    </g>
+  </symbol>
+  <symbol id="clip" viewBox="0 0 90 48">
+    <path d="M12 30 L62 8 C70 4 80 10 78 19 C76 28 68 30 62 33 L26 42 C14 45 6 36 10 28 C14 20 26 18 32 22" fill="none" stroke="#cfc9c5" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="68" cy="22" r="14" fill="#e9e0cc" stroke="#9b8a82" stroke-width="2"/>
+  </symbol>
+  <symbol id="bclip" viewBox="0 0 100 48">
+    <path d="M14 30 C6 10 22 4 50 4 C78 4 94 10 86 30 L80 30 C84 16 72 12 50 12 C28 12 16 16 20 30 Z" fill="#cfc9c5" stroke="#8f8884" stroke-width="2"/>
+    <rect x="22" y="26" width="56" height="16" rx="3" fill="#e4dcd6" stroke="#8f8884" stroke-width="2"/>
+  </symbol>
+  <symbol id="frame" viewBox="0 0 100 130">
+    <rect width="100" height="130" fill="#f3bfc8"/>
+    <g transform="translate(50 62) rotate(-8) scale(0.38) translate(-100 -100)"><use href="#star" style="color:#55142a"/></g>
+    <g transform="translate(50 62) rotate(20) scale(0.15) translate(-100 -100)"><use href="#star" style="color:#f5d7db"/></g>
+  </symbol>
+  <symbol id="frame2" viewBox="0 0 100 130">
+    <rect width="100" height="130" fill="#55142a"/>
+    <g transform="translate(50 62) rotate(14) scale(0.38) translate(-100 -100)"><use href="#star" style="color:#f3bfc8"/></g>
+  </symbol>
+  <symbol id="frame3" viewBox="0 0 100 130">
+    <rect width="100" height="130" fill="#e9e0cc"/>
+    <g transform="translate(50 62) rotate(-20) scale(0.38) translate(-100 -100)"><use href="#star" style="color:#3f1618"/></g>
+    <circle cx="20" cy="22" r="9" fill="#f3bfc8"/>
+  </symbol>
+</svg>
+
+<main class="wrap">
+
+  <!-- OMSLAG -->
+  <header class="cover">
+    <svg class="clip" aria-hidden="true" focusable="false"><use href="#clip"/></svg>
+    <div class="cover-top">
+      <div class="deck" aria-hidden="true">
+        <div class="card">
+          <span class="tape"></span>
+          <span class="script big">Portfolio</span>
+          <span class="script yr">2026</span>
+        </div>
+        <div class="strip">
+          <svg viewBox="0 0 100 130" focusable="false"><use href="#frame"/></svg>
+          <svg viewBox="0 0 100 130" focusable="false"><use href="#frame2"/></svg>
+          <svg viewBox="0 0 100 130" focusable="false"><use href="#frame3"/></svg>
+        </div>
+      </div>
+      <div class="tags">
+        <h1><span class="tag a">Samira</span><span class="tag b">Jama</span></h1>
+        <p class="mono" style="color: var(--cream)">Frontendutvecklare</p>
+        <nav class="links" aria-label="Länkar">
+          <a class="label" href="https://github.com/samira411-art" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+          <a class="label" href="https://www.linkedin.com/in/samira-jama-873076403/" target="_blank" rel="noopener noreferrer">LinkedIn <span aria-hidden="true">↗</span></a>
+        </nav>
+      </div>
+    </div>
+    <div class="band" aria-hidden="true">
+      <span class="charm pill"></span>
+      <span class="charm">S</span>
+      <span class="charm"><svg viewBox="0 0 200 200"><use href="#star" style="color:#55142a"/></svg></span>
+    </div>
+    <div class="cover-foot mono"><span>Digital planner</span><span>Samira Jama · 2026</span></div>
+    <svg class="sticker-star" viewBox="0 0 200 200" aria-hidden="true" focusable="false"><use href="#star"/></svg>
+  </header>
+
+  <!-- RINGPÄRM -->
+  <section class="binder" aria-labelledby="om-mig">
+    <div class="pg pg-l">
+      <div class="pocket">
+        <div class="strip" aria-hidden="true">
+          <svg viewBox="0 0 100 130" focusable="false"><use href="#frame3"/></svg>
+          <svg viewBox="0 0 100 130" focusable="false"><use href="#frame"/></svg>
+          <svg viewBox="0 0 100 130" focusable="false"><use href="#frame2"/></svg>
+        </div>
+        <div class="post">
+          <span class="stamp" aria-hidden="true"><svg viewBox="0 0 200 200"><use href="#star"/></svg></span>
+          <span class="lbl">Vykort</span>
+          <span class="hand">Hej från Samira!</span>
+          <ul class="contact">
+            <li><span class="k">E-post</span><span class="v"><span id="mail">Samira079@hotmail.com</span><button class="copy" id="copy" type="button">Kopiera</button></span></li>
+            <li><span class="k">GitHub</span><span class="v"><a href="https://github.com/samira411-art" target="_blank" rel="noopener noreferrer">samira411-art</a></span></li>
+            <li><span class="k">LinkedIn</span><span class="v"><a href="https://www.linkedin.com/in/samira-jama-873076403/" target="_blank" rel="noopener noreferrer">Samira Jama</a></span></li>
+          </ul>
+        </div>
+      </div>
+      <p class="mono" style="color: var(--ink-soft)">Flik ett: kontakt</p>
+    </div>
+    <div class="pg pg-r">
+      <svg class="bclip" aria-hidden="true" focusable="false"><use href="#bclip"/></svg>
+      <div class="head">
+        <h2 id="om-mig">Om mig</h2>
+        <div class="photo" aria-hidden="true"><svg viewBox="0 0 100 130" focusable="false"><use href="#frame"/></svg></div>
+      </div>
+      <div class="fields">
+        <div class="field"><span class="lbl">Den här portföljen tillhör:</span><span class="hand">Samira Jama</span></div>
+        <div class="field"><span class="lbl">Roll:</span><span class="hand">Frontendutvecklare</span></div>
+        <div class="field"><span class="lbl">Fokus:</span><span class="hand">Webbutveckling, React, TypeScript</span></div>
+      </div>
+      <div class="bio">
+        <p>Hej! Jag heter Samira och är frontendutvecklare. Jag är en driven och ansvarsfull problemlösare. Jag är flexibel, anpassar mig snabbt till nya situationer och trivs lika bra i team som självständigt.</p>
+        <p>Under min utbildning till frontendutvecklare har jag hittat ett genuint intresse för att skapa och förbättra digitala lösningar. Jag strävar ständigt efter att utvecklas och bygga vidare på mina tekniska kunskaper och söker nu möjligheter att omsätta mitt engagemang i praktiska projekt inom webbutveckling.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- LÖSA ARK -->
+  <section aria-labelledby="sidor">
+    <h2 class="sec-h" id="sidor">Mina sidor</h2>
+    <div class="sheets">
+      <section class="sheet" aria-labelledby="h-utb">
+        <span class="tape" aria-hidden="true"></span>
+        <h3 class="tab" id="h-utb">Utbildning</h3>
+        <div class="item"><b>Frontend Developer, KYH</b><span class="m">Inriktning: Webbutveckling, frontend</span><span class="d">sep. 2025 – juni 2027</span></div>
+        <div class="item"><b>Kandidatprogram i interaktionsdesign</b><span class="m">Mälardalens universitet</span><span class="d">sep. 2024 – juni 2025</span></div>
+        <div class="item"><b>Ekonomiprogrammet</b><span class="m">Westerlundska gymnasiet</span><span class="d">juni 2019</span></div>
+      </section>
+      <section class="sheet" aria-labelledby="h-skills">
+        <span class="tape" aria-hidden="true"></span>
+        <h3 class="tab" id="h-skills">Tekniska färdigheter</h3>
+        <p class="sub">Frontend</p>
+        <ul class="levels">
+          <li>HTML <span class="dots" role="img" aria-label="5 av 5"><i></i><i></i><i></i><i></i><i></i></span></li>
+          <li>CSS <span class="dots" role="img" aria-label="5 av 5"><i></i><i></i><i></i><i></i><i></i></span></li>
+          <li>JavaScript <span class="dots" role="img" aria-label="5 av 5"><i></i><i></i><i></i><i></i><i></i></span></li>
+          <li>React <span class="dots" role="img" aria-label="5 av 5"><i></i><i></i><i></i><i></i><i></i></span></li>
+          <li>TypeScript <span class="dots" role="img" aria-label="5 av 5"><i></i><i></i><i></i><i></i><i></i></span></li>
+        </ul>
+        <p class="sub">Backend</p>
+        <ul class="levels">
+          <li>Node.js <span class="dots" role="img" aria-label="5 av 5"><i></i><i></i><i></i><i></i><i></i></span></li>
+          <li>Express <span class="dots" role="img" aria-label="5 av 5"><i></i><i></i><i></i><i></i><i></i></span></li>
+          <li>API:er <span class="dots" role="img" aria-label="5 av 5"><i></i><i></i><i></i><i></i><i></i></span></li>
+        </ul>
+      </section>
+      <section class="sheet" aria-labelledby="h-sprak">
+        <span class="tape" aria-hidden="true"></span>
+        <h3 class="tab" id="h-sprak">Språk</h3>
+        <ul class="levels">
+          <li>Svenska <span class="dots" role="img" aria-label="5 av 5"><i></i><i></i><i></i><i></i><i></i></span></li>
+          <li>Engelska <span class="dots" role="img" aria-label="5 av 5"><i></i><i></i><i></i><i></i><i></i></span></li>
+          <li>Somaliska <span class="dots" role="img" aria-label="5 av 5"><i></i><i></i><i></i><i></i><i></i></span></li>
+        </ul>
+        <p class="item"><span class="d">Referenser finns på begäran</span></p>
+      </section>
+    </div>
+  </section>
+
+  <!-- POST-IT -->
+  <section aria-labelledby="gillar">
+    <h2 class="sec-h" id="gillar">Det här gillar jag</h2>
+    <ul class="notes">
+      <li class="note"><span class="tape" aria-hidden="true"></span><b>Lösa problem</b><span>Jag gillar att ta mig an ett problem och lösa det steg för steg tills jag hittar en fungerande lösning.</span></li>
+      <li class="note"><span class="tape" aria-hidden="true"></span><b>Göra det enkelt</b><span>En bra hemsida ska vara lätt att förstå och använda för alla besökare.</span></li>
+      <li class="note"><span class="tape" aria-hidden="true"></span><b>Lära mig mer</b><span>Jag vill ständigt utvecklas och bygga vidare på mina kunskaper i webbutveckling.</span></li>
+    </ul>
+  </section>
+
+  <!-- PROJEKT -->
+  <section aria-labelledby="projekt">
+    <h2 class="sec-h" id="projekt">Projekt <small>(klicka för koden)</small></h2>
+    <div class="cards">
+      <article class="pcard">
+        <span class="tape" aria-hidden="true"></span>
+        <span class="k">Webbapp · Frontend</span>
+        <h3>Boka grupprum</h3>
+        <p>Ett bokningssystem för grupprum på biblioteket där användaren kan se vilka rum som är tillgängliga och boka en tid med sin e-postadress. Appen kontrollerar att inget rum dubbelbokas.</p>
+        <ul class="ptags" aria-label="Teknik"><li>React</li><li>TypeScript</li><li>json-server</li></ul>
+        <a class="btn" href="https://github.com/samira411-art/Grupprum1" target="_blank" rel="noopener noreferrer">Se på GitHub <span aria-hidden="true">↗</span></a>
+      </article>
+      <article class="pcard">
+        <span class="tape" aria-hidden="true"></span>
+        <span class="k">Skolprojekt · Frontend</span>
+        <h3>Individuell examination</h3>
+        <p>Mitt individuella examinationsprojekt från frontendutbildningen. Koden finns öppen på GitHub.</p>
+        <a class="btn" href="https://github.com/samira411-art/Individuell-examination" target="_blank" rel="noopener noreferrer">Se på GitHub <span aria-hidden="true">↗</span></a>
+      </article>
+    </div>
+  </section>
+
+  <section class="outro" aria-label="Avslutning">
+    <svg class="s-big" viewBox="0 0 200 240" aria-hidden="true" focusable="false"><path d="M173.9 44.5 L173.4 41.2 L171.9 38.6 L169.7 36.1 L167.0 33.3 L163.9 30.6 L160.4 27.8 L156.7 25.0 L152.7 22.4 L148.4 20.0 L144.1 17.9 L139.9 16.2 L135.6 14.6 L131.2 13.2 L126.7 12.0 L122.0 10.9 L117.3 9.9 L112.5 9.2 L107.6 8.6 L102.8 8.3 L98.0 8.3 L93.3 8.4 L88.6 8.8 L83.9 9.4 L79.1 10.2 L74.3 11.3 L69.5 12.7 L64.8 14.4 L60.0 16.4 L55.3 19.0 L50.6 22.2 L46.4 25.9 L42.7 29.8 L39.4 34.0 L36.4 38.4 L33.8 43.1 L31.6 48.1 L29.9 53.4 L28.6 59.1 L28.0 65.2 L28.3 71.9 L29.6 78.6 L31.8 84.6 L34.4 89.9 L37.3 94.6 L40.4 98.8 L43.6 102.7 L46.9 106.4 L50.3 109.7 L53.7 112.8 L57.5 116.0 L61.9 119.2 L66.7 122.1 L71.3 124.5 L75.7 126.6 L79.8 128.3 L83.6 129.9 L87.1 131.3 L90.2 132.6 L92.9 133.8 L95.7 135.1 L99.2 136.9 L103.1 138.7 L106.8 140.4 L110.1 141.9 L113.2 143.3 L115.8 144.6 L117.8 145.7 L119.2 146.5 L119.8 146.8 L119.9 146.8 L120.0 146.8 L120.4 147.2 L120.8 147.6 L121.1 148.0 L121.4 148.4 L121.7 148.7 L121.9 149.0 L122.1 149.1 L122.2 149.2 L122.5 149.1 L122.6 149.2 L122.6 149.9 L122.3 151.1 L121.8 152.5 L121.2 154.0 L120.3 155.6 L119.5 157.1 L118.5 158.4 L117.7 159.5 L117.0 160.4 L116.2 161.3 L114.7 162.3 L112.8 163.5 L110.4 164.6 L107.7 165.7 L104.8 166.8 L101.7 167.8 L98.5 168.7 L95.4 169.5 L92.9 170.2 L91.1 170.7 L89.2 170.9 L86.5 170.9 L83.2 170.7 L79.4 170.3 L75.2 169.9 L70.6 169.6 L65.6 169.6 L60.1 170.3 L54.5 171.8 L49.3 174.2 L44.9 177.2 L41.0 180.4 L37.7 183.8 L34.7 187.2 L32.1 190.6 L29.9 193.9 L28.3 196.9 L27.3 199.6 L27.5 202.9 L32.5 209.1 L35.9 209.8 L39.1 208.9 L42.3 207.6 L45.5 205.9 L48.8 204.3 L52.1 202.7 L55.2 201.3 L58.0 200.4 L60.2 200.0 L61.5 200.2 L62.4 200.7 L63.8 201.3 L65.8 202.1 L68.4 203.2 L71.6 204.4 L75.2 205.8 L79.4 207.2 L84.2 208.5 L89.6 209.4 L95.1 209.8 L100.0 209.8 L104.4 209.6 L109.0 209.3 L113.7 208.8 L118.5 208.0 L123.4 207.0 L128.2 205.8 L133.2 204.2 L138.1 202.1 L143.0 199.6 L147.6 196.6 L151.8 193.2 L155.6 189.7 L159.1 185.9 L162.3 182.0 L165.2 177.8 L167.8 173.5 L170.1 169.0 L172.0 164.1 L173.5 158.9 L174.5 153.6 L174.8 148.2 L174.7 142.9 L174.0 137.7 L172.8 132.6 L171.2 127.7 L169.2 122.9 L166.7 118.2 L163.7 113.7 L160.1 109.2 L155.7 104.9 L151.1 101.2 L146.6 98.2 L142.3 95.7 L138.1 93.4 L134.0 91.4 L130.3 89.6 L126.7 88.0 L123.6 86.5 L120.3 84.9 L116.3 82.9 L112.0 81.0 L107.9 79.4 L104.1 78.0 L100.7 76.7 L97.7 75.5 L95.2 74.4 L93.2 73.5 L91.7 72.8 L90.5 72.0 L88.9 70.8 L86.9 69.2 L85.0 67.6 L83.3 66.1 L81.9 64.7 L80.8 63.5 L80.0 62.7 L79.7 62.4 L79.6 62.9 L79.7 64.1 L79.6 65.2 L79.4 65.5 L79.2 65.1 L79.2 64.2 L79.4 63.1 L79.8 61.8 L80.2 60.6 L80.7 59.4 L81.1 58.4 L81.4 57.8 L81.7 57.1 L82.6 56.2 L84.0 55.1 L85.9 53.9 L88.2 52.7 L90.7 51.5 L93.4 50.4 L96.3 49.4 L99.2 48.5 L102.0 47.7 L104.8 47.1 L107.9 46.5 L111.2 46.1 L114.6 45.8 L118.3 45.6 L121.9 45.6 L125.6 45.6 L129.2 45.7 L132.7 45.9 L135.9 46.1 L138.9 46.4 L142.2 47.0 L145.7 47.8 L149.4 48.8 L153.1 49.9 L156.8 51.0 L160.3 51.9 L163.7 52.6 L166.9 52.8 L170.1 51.5 Z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+    <p class="outro-text">Tack för besöket<span>Samira Jama, 2026</span></p>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <div>
+      <h2>Hör av dig</h2>
+      <nav aria-label="Länkar">
+        <a class="btn" href="https://github.com/samira411-art" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+        <a class="btn" href="https://www.linkedin.com/in/samira-jama-873076403/" target="_blank" rel="noopener noreferrer">LinkedIn <span aria-hidden="true">↗</span></a>
+      </nav>
+    </div>
+    <svg class="mark" role="img" aria-label="Monogram S"><use href="#s-mark"/></svg>
+    <small>© 2026 Samira Jama</small>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var btn = document.getElementById("copy");
+    var mail = document.getElementById("mail");
+    btn.addEventListener("click", function () {
+      var done = function () { btn.textContent = "Kopierad"; setTimeout(function () { btn.textContent = "Kopiera"; }, 1800); };
+      var fallback = function () {
+        try {
+          var r = document.createRange(); r.selectNodeContents(mail);
+          var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+        } catch (e) {}
+      };
+      try {
+        navigator.clipboard.writeText(mail.textContent).then(done, fallback);
+      } catch (e) { fallback(); }
+    });
+  })();
+</script>
+
+</body>
+</html>
